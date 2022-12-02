@@ -1,10 +1,7 @@
-use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-
-type Result<T> = std::result::Result<T, String>;
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where
@@ -14,16 +11,39 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn group_with_most_calories(lines: io::Lines<io::BufReader<File>>) -> Result<usize> {
-    lines
-        .group_by(|line| line.as_ref().map(|str| str.is_empty()).unwrap_or_default())
-        .into_iter()
-        .map(|(_, group)| group.map(|r| r.and_then(|s| s.parse::<usize>())));
-    todo!();
+fn parse_input(line_r: Result<String, std::io::Error>) -> Result<Option<usize>, String> {
+    line_r
+        .map_err(|err| err.to_string())
+        .map(|line| line.parse::<usize>().ok())
 }
 
 fn main() {
-    // File hosts must exist in current path before this produces output
-    let lines = read_lines("day_1/input.txt").expect("input file should be readable");
-    group_with_most_calories(lines).unwrap();
+    let mut slots = 0_usize;
+    let slot_index = |line: &Option<usize>| -> usize {
+        if line.is_none() {
+            slots += 1;
+        }
+
+        slots
+    };
+
+    let file = read_lines("day_1/input.txt").expect("read input file");
+
+    let lines: Vec<usize> = file
+        .into_iter()
+        .map(parse_input)
+        .collect::<Result<Vec<Option<usize>>, String>>()
+        .expect("read all file lines")
+        .into_iter()
+        .group_by(slot_index)
+        .into_iter()
+        .map(|(_, group)| group.map(|item| item.unwrap_or_default()).sum::<usize>())
+        .sorted()
+        .collect();
+
+    println!("max amount of calories: {}", lines[slots]);
+    println!(
+        "sum of amount of calories: {}",
+        lines.iter().rev().take(3).sum::<usize>()
+    );
 }
