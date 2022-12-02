@@ -1,15 +1,4 @@
 use itertools::Itertools;
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
-
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
-}
 
 fn parse_input(line_r: Result<String, std::io::Error>) -> Result<Option<usize>, String> {
     line_r
@@ -27,7 +16,7 @@ fn main() {
         slots
     };
 
-    let file = read_lines("day_1/input.txt").expect("read input file");
+    let file = util::read_lines("day_1/input.txt").expect("read input file");
 
     let lines: Vec<usize> = file
         .into_iter()
